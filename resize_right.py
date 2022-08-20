@@ -4,6 +4,7 @@ from math import ceil
 import interp_methods
 from fractions import Fraction
 import numba
+from numba import jit
 class NoneClass:
     pass
 try:
