@@ -138,7 +138,6 @@ def set_scale_and_out_sz(in_shape, out_shape, scale_factors, by_convs,scale_tole
                 by_convs[ind] = False
         return scale_factors, out_shape, by_convs
 
-@jit(fastmath=True,forceobj=True,cache=True)
 def apply_antialiasing_if_needed(interp_method, support_sz, scale_factor,antialiasing):
     scale_factor = float(scale_factor)
     if scale_factor >= 1.0 or not antialiasing:
