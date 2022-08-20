@@ -22,7 +22,7 @@ except ImportError:
     numpy = None
 if numpy is None and torch is None:
     raise ImportError("Must have either Numpy or PyTorch but both not found")
-def resize(input, scale_factors=None, out_shape=None,interp_method=interp_methods.lanczos3, support_sz=6,antialiasing=False, by_convs=False, scale_tolerance=None,max_numerator=10, pad_mode='constant'):
+def resize(input, scale_factors=None, out_shape=None,interp_method=interp_methods.linear, support_sz=1,antialiasing=False, by_convs=False, scale_tolerance=None,max_numerator=10, pad_mode='constant'):
     in_shape, n_dims = input.shape, input.ndim
     fw = numpy if type(input) is numpy.ndarray else torch
     eps = fw.finfo(fw.float32).eps
