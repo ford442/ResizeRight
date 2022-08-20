@@ -73,8 +73,7 @@ def get_weights(interp_method, projected_grid, field_of_view):
     sum_weights = weights.sum(1, keepdims=True)
     sum_weights[sum_weights == 0] = 1
     return weights / sum_weights
-def apply_weights(input, field_of_view, weights, dim, n_dims, pad_sz, pad_mode,
-                  fw):
+def apply_weights(input, field_of_view, weights, dim, n_dims, pad_sz, pad_mode,fw):
     tmp_input = fw_swapaxes(input, dim, 0, fw)
     tmp_input = fw_pad(tmp_input, fw, pad_sz, pad_mode)
     neighbors = tmp_input[field_of_view]
@@ -82,7 +81,7 @@ def apply_weights(input, field_of_view, weights, dim, n_dims, pad_sz, pad_mode,
     tmp_output = (neighbors * tmp_weights).sum(1)
     return fw_swapaxes(tmp_output, 0, dim, fw)
 def apply_convs(input, scale_factor, in_sz, out_sz, weights, dim, pad_sz,pad_mode, fw):
-     input = fw_swapaxes(input, dim, -1, fw)
+    input = fw_swapaxes(input, dim, -1, fw)
     stride, num_convs = scale_factor.denominator, scale_factor.numerator
     tmp_out_shape = list(input.shape)
     tmp_out_shape[-1] = out_sz
