@@ -1,5 +1,6 @@
 from math import pi
-import numba from numba import jit
+import numba
+from numba import jit
 
 try:
     import torch
