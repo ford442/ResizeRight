@@ -100,7 +100,7 @@ def set_scale_and_out_sz(in_shape, out_shape, scale_factors, by_convs,scale_tole
                      if fw is numpy
                      else list(in_shape[:-len(out_shape)]) + list(out_shape))
         if scale_factors is None:
-            scale_factors = [out_sz / in_sz for out_sz, in_szin zip(out_shape, in_shape)]
+            scale_factors = [out_sz / in_sz for out_sz, in_szin zip (out_shape, in_shape)]
     if scale_factors is not None:
         scale_factors = (scale_factors
                          if isinstance(scale_factors, (list, tuple))
