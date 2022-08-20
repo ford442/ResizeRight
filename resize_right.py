@@ -101,7 +101,7 @@ def apply_convs(input, scale_factor, in_sz, out_sz, weights, dim, pad_sz,pad_mod
         tmp_output[..., conv_ind::num_convs] = fw_conv(tmp_input, filt, stride)
     return fw_swapaxes(tmp_output, -1, dim, fw)
 
-@jit(fastmath=True,forceobj=True,cache=True)
+@jit(fastmath=True,forceobj=True)
 def set_scale_and_out_sz(in_shape, out_shape, scale_factors, by_convs,scale_tolerance, max_numerator, eps, fw):
     if scale_factors is None and out_shape is None:
         raise ValueError("either scale_factors or out_shape should be provided")
