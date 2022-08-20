@@ -33,15 +33,13 @@ def support_sz(sz):
     return wrapper
 
 
-@jit(fastmath=True,forceobj=True,cache=True)
+@njit(parallel=True,fastmath=True,cache=True)
 def cubic(x):
-    fw, to_dtype, eps = set_framework_dependencies(x)
-    absx = fw.abs(x)
-    absx2 = absx ** 2
-    absx3 = absx ** 3
-    return ((1.5 * absx3 - 2.5 * absx2 + 1.) * to_dtype(absx <= 1.) +
-            (-0.5 * absx3 + 2.5 * absx2 - 4. * absx + 2.) *
-            to_dtype((1. < absx) & (absx <= 2.)))
+    fw,to_dtype,eps=set_framework_dependencies(x)
+    absx=fw.abs(x)
+    absx2=absx ** 2
+    absx3=absx ** 3
+    return ((1.5*absx3-2.5*absx2+1.0)*to_dtype(absx<=1.0)+(-0.5*absx3+2.5*absx2-4.0*absx+2.0)*to_dtype((1.0<absx)&(absx<=2.0)))
 
 
 @jit(fastmath=True,forceobj=True,cache=True)
