@@ -34,7 +34,7 @@ def support_sz(sz):
     return wrapper
 
 
-@njit(parallel=True,fastmath=True,cache=True)
+@jit(parallel=True,fastmath=True,cache=True)
 def cubic(x):
     fw,to_dtype,eps=set_framework_dependencies(x)
     absx=fw.abs(x)
