@@ -1,7 +1,6 @@
 from math import pi
 import numba
 from numba import jit
-from numba import njit
 
 try:
     import torch
@@ -34,7 +33,7 @@ def support_sz(sz):
     return wrapper
 
 
-@jit(parallel=True,fastmath=True,cache=True)
+@jit(parallel=True,forceobj=True,fastmath=True,cache=True)
 def cubic(x):
     fw,to_dtype,eps=set_framework_dependencies(x)
     absx=fw.abs(x)
