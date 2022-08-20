@@ -25,7 +25,7 @@ def set_framework_dependencies(x):
     eps = fw.finfo(fw.float32).eps
     return fw, to_dtype, eps
 
-@jit(fastmath=False,forceobj=True,cache=True)
+@jit(forceobj=True,cache=True)
 def support_sz(sz):
     def wrapper(f):
         f.support_sz = sz
@@ -33,7 +33,7 @@ def support_sz(sz):
     return wrapper
 
 
-@jit(forceobj=False,fastmath=True,cache=True)
+@jit(forceobj=True,cache=True)
 def cubic(x):
     fw,to_dtype,eps=set_framework_dependencies(x)
     absx=fw.abs(x)
