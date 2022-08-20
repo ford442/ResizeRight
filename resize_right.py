@@ -3,6 +3,7 @@ import warnings
 from math import ceil
 import interp_methods
 from fractions import Fraction
+import numba
 class NoneClass:
     pass
 try:
@@ -20,10 +21,8 @@ except ImportError:
     numpy = None
 if numpy is None and torch is None:
     raise ImportError("Must have either Numpy or PyTorch but both not found")
-def resize(input, scale_factors=None, out_shape=None,
-           interp_method=interp_methods.lanczos3, support_sz=6,
-           antialiasing=False, by_convs=False, scale_tolerance=None,
-           max_numerator=10, pad_mode='constant'):
+@jit(fastmath=True,forceobj=True,cache=True)
+def resize(input, scale_factors=None, out_shape=None,interp_method=interp_methods.lanczos3, support_sz=6,antialiasing=False, by_convs=False, scale_tolerance=None,max_numerator=10, pad_mode='constant'):
     in_shape, n_dims = input.shape, input.ndim
     fw = numpy if type(input) is numpy.ndarray else torch
     eps = fw.finfo(fw.float32).eps
@@ -36,8 +35,7 @@ def resize(input, scale_factors=None, out_shape=None,
     if support_sz is None:
         support_sz = interp_method.support_sz
     output = input
-    for (dim, scale_factor, dim_by_convs, in_sz, out_sz
-         ) in sorted_filtered_dims_and_scales:
+    for (dim, scale_factor, dim_by_convs, in_sz, out_sz) in sorted_filtered_dims_and_scales:
         projected_grid = get_projected_grid(in_sz, out_sz,scale_factor, fw, dim_by_convs,device)
         cur_interp_method, cur_support_sz = apply_antialiasing_if_needed(interp_method,support_sz,scale_factor,antialiasing)
         field_of_view = get_field_of_view(projected_grid, cur_support_sz, fw,eps, device)
@@ -56,8 +54,7 @@ def get_field_of_view(projected_grid, cur_support_sz, fw, eps, device):
     left_boundaries = fw_ceil(projected_grid - cur_support_sz / 2 - eps, fw)
     ordinal_numbers = fw_arange(ceil(cur_support_sz - eps), fw, device)
     return left_boundaries[:, None] + ordinal_numbers
-def calc_pad_sz(in_sz, out_sz, field_of_view, projected_grid, scale_factor,
-                dim_by_convs, fw, device):
+def calc_pad_sz(in_sz, out_sz, field_of_view, projected_grid, scale_factor,dim_by_convs, fw, device):
     if not dim_by_convs:
         pad_sz = [-field_of_view[0, 0].item(),field_of_view[-1, -1].item() - in_sz + 1]
         field_of_view += pad_sz[0]
@@ -93,8 +90,7 @@ def apply_convs(input, scale_factor, in_sz, out_sz, weights, dim, pad_sz,pad_mod
     return fw_swapaxes(tmp_output, -1, dim, fw)
 def set_scale_and_out_sz(in_shape, out_shape, scale_factors, by_convs,scale_tolerance, max_numerator, eps, fw):
     if scale_factors is None and out_shape is None:
-        raise ValueError("either scale_factors or out_shape should be "
-                         "provided")
+        raise ValueError("either scale_factors or out_shape should be provided")
     if out_shape is not None:
         out_shape = (list(out_shape) + list(in_shape[len(out_shape):])
                      if fw is numpy
