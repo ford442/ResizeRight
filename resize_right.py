@@ -64,7 +64,7 @@ def resize(input, scale_factors=None, out_shape=None,
     # unless support size is specified by the user, it is an attribute
     # of the interpolation method
     if support_sz is None:
-        support_sz = 4
+        support_sz = interp_method.support_sz
 
     # output begins identical to input and changes with each iteration
     output = input
