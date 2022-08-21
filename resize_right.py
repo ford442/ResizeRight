@@ -33,7 +33,7 @@ def resize(input, scale_factors=None, out_shape=None,interp_method=interp_method
                                        key=lambda ind: scale_factors[ind])
                                        if scale_factors[dim] != 1.]
     if support_sz is None:
-        support_sz = interp_method.support_sz
+        support_sz = 4
     output = input
     for (dim, scale_factor, dim_by_convs, in_sz, out_sz) in sorted_filtered_dims_and_scales:
         projected_grid = get_projected_grid(in_sz, out_sz,scale_factor, fw, dim_by_convs,device)
