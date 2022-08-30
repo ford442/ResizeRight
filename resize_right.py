@@ -171,7 +171,6 @@ def fw_swapaxes(x, ax_1, ax_2, fw):
     else:
         return x.transpose(ax_1, ax_2)
     
-@lru_cache(maxsize=40)
 def fw_pad(x, fw, pad_sz, pad_mode, dim=0):
     if pad_sz == (0, 0):
         return x
