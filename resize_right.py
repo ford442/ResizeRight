@@ -24,97 +24,26 @@ except ImportError:
 if numpy is None and torch is None:
     raise ImportError("Must have either Numpy or PyTorch but both not found")
 
-def resize(input, scale_factors=None, out_shape=None,
-           interp_method=interp_methods.cubic, support_sz=None,
-           antialiasing=True, by_convs=False, scale_tolerance=None,
-           max_numerator=10, pad_mode='constant'):
-    # get properties of the input tensor
+def resize(input, scale_factors=None, out_shape=None,interp_method=interp_methods.cubic, support_sz=None,antialiasing=True, by_convs=False, scale_tolerance=None,max_numerator=10, pad_mode='constant'):
     in_shape, n_dims = input.shape, input.ndim
-
-    # fw stands for framework that can be either numpy or torch,
-    # determined by the input type
     fw = numpy if type(input) is numpy.ndarray else torch
     eps = fw.finfo(fw.float32).eps
     device = input.device if fw is torch else None
-
-    # set missing scale factors or output shapem one according to another,
-    # scream if both missing. this is also where all the defults policies
-    # take place. also handling the by_convs attribute carefully.
-    scale_factors, out_shape, by_convs = set_scale_and_out_sz(in_shape,
-                                                              out_shape,
-                                                              scale_factors,
-                                                              by_convs,
-                                                              scale_tolerance,
-                                                              max_numerator,
-                                                              eps, fw)
-
-    # sort indices of dimensions according to scale of each dimension.
-    # since we are going dim by dim this is efficient
-    sorted_filtered_dims_and_scales = [(dim, scale_factors[dim], by_convs[dim],
-                                        in_shape[dim], out_shape[dim])
-                                       for dim in sorted(range(n_dims),
-                                       key=lambda ind: scale_factors[ind])
-                                       if scale_factors[dim] != 1.]
-
-    # unless support size is specified by the user, it is an attribute
-    # of the interpolation method
+    scale_factors, out_shape, by_convs = set_scale_and_out_sz(in_shape,out_shape,scale_factors,by_convs,scale_tolerance,max_numerator,eps, fw)
+    sorted_filtered_dims_and_scales = [(dim, scale_factors[dim], by_convs[dim],in_shape[dim], out_shape[dim])for dim in sorted(range(n_dims),key=lambda ind: scale_factors[ind])if scale_factors[dim] != 1.]
     if support_sz is None:
         support_sz = interp_method.support_sz
-
-    # output begins identical to input and changes with each iteration
     output = input
-
-    # iterate over dims
-    for (dim, scale_factor, dim_by_convs, in_sz, out_sz
-         ) in sorted_filtered_dims_and_scales:
-        # STEP 1- PROJECTED GRID: The non-integer locations of the projection
-        # of output pixel locations to the input tensor
-        projected_grid = get_projected_grid(in_sz, out_sz,
-                                            scale_factor, fw, dim_by_convs,
-                                            device)
-
-        # STEP 1.5: ANTIALIASING- If antialiasing is taking place, we modify
-        # the window size and the interpolation method (see inside function)
-        cur_interp_method, cur_support_sz = apply_antialiasing_if_needed(
-                                                                interp_method,
-                                                                support_sz,
-                                                                scale_factor,
-                                                                antialiasing)
-
-        # STEP 2- FIELDS OF VIEW: for each output pixels, map the input pixels
-        # that influence it. Also calculate needed padding and update grid
-        # accoedingly
-        field_of_view = get_field_of_view(projected_grid, cur_support_sz, fw,
-                                          eps, device)
-
-        # STEP 2.5- CALCULATE PAD AND UPDATE: according to the field of view,
-        # the input should be padded to handle the boundaries, coordinates
-        # should be updated. actual padding only occurs when weights are
-        # aplied (step 4). if using by_convs for this dim, then we need to
-        # calc right and left boundaries for each filter instead.
-        pad_sz, projected_grid, field_of_view = calc_pad_sz(in_sz, out_sz,
-                                                            field_of_view,
-                                                            projected_grid,
-                                                            scale_factor,
-                                                            dim_by_convs, fw,
-                                                            device)
-
-        # STEP 3- CALCULATE WEIGHTS: Match a set of weights to the pixels in
-        # the field of view for each output pixel
+    for (dim, scale_factor, dim_by_convs, in_sz, out_sz) in sorted_filtered_dims_and_scales:
+        projected_grid = get_projected_grid(in_sz, out_sz,scale_factor, fw, dim_by_convs,device)
+        cur_interp_method, cur_support_sz = apply_antialiasing_if_needed(interp_method,support_sz,scale_factor,antialiasing)
+        field_of_view = get_field_of_view(projected_grid, cur_support_sz, fw,eps, device)
+        pad_sz, projected_grid, field_of_view = calc_pad_sz(in_sz, out_sz,field_of_view,projected_grid,scale_factor,dim_by_convs, fw,device)
         weights = get_weights(cur_interp_method, projected_grid, field_of_view)
-
-        # STEP 4- APPLY WEIGHTS: Each output pixel is calculated by multiplying
-        # its set of weights with the pixel values in its field of view.
-        # We now multiply the fields of view with their matching weights.
-        # We do this by tensor multiplication and broadcasting.
-        # if by_convs is true for this dim, then we do this action by
-        # convolutions. this is equivalent but faster.
         if not dim_by_convs:
-            output = apply_weights(output, field_of_view, weights, dim, n_dims,
-                                   pad_sz, pad_mode, fw)
+            output = apply_weights(output, field_of_view, weights, dim, n_dims,pad_sz, pad_mode, fw)
         else:
-            output = apply_convs(output, scale_factor, in_sz, out_sz, weights,
-                                 dim, pad_sz, pad_mode, fw)
+            output = apply_convs(output, scale_factor, in_sz, out_sz, weights,dim, pad_sz, pad_mode, fw)
     return output
 
 @lru_cache(maxsize=40)
