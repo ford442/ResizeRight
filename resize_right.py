@@ -77,7 +77,6 @@ def get_weights(interp_method, projected_grid, field_of_view):
     sum_weights[sum_weights == 0] = 1
     return weights / sum_weights
 
-@lru_cache(maxsize=40)
 def apply_weights(input, field_of_view, weights, dim, n_dims, pad_sz, pad_mode,fw):
     tmp_input = fw_swapaxes(input, dim, 0, fw)
     tmp_input = fw_pad(tmp_input, fw, pad_sz, pad_mode)
