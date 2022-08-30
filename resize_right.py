@@ -4,7 +4,6 @@ from math import ceil
 import interp_methods
 from fractions import Fraction
 from functools import lru_cache;
-from methodtools import lru_cache as class_cache;
 
 class NoneClass:
     pass
