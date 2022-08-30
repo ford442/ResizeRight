@@ -27,7 +27,7 @@ if numpy is None and torch is None:
 def resize(input, scale_factors=None, out_shape=None,interp_method=interp_methods.cubic, support_sz=None,antialiasing=True, by_convs=False, scale_tolerance=None,max_numerator=10, pad_mode='constant'):
     in_shape, n_dims = input.shape, input.ndim
     fw = numpy if type(input) is numpy.ndarray else torch
-    eps = fw.finfo(fw.float32).eps
+    eps = fw.finfo(fw.float16).eps
     device = input.device if fw is torch else None
     scale_factors, out_shape, by_convs = set_scale_and_out_sz(in_shape,out_shape,scale_factors,by_convs,scale_tolerance,max_numerator,eps, fw)
     sorted_filtered_dims_and_scales = [(dim, scale_factors[dim], by_convs[dim],in_shape[dim], out_shape[dim])for dim in sorted(range(n_dims),key=lambda ind: scale_factors[ind])if scale_factors[dim] != 1.]
