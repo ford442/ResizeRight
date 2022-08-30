@@ -24,7 +24,6 @@ except ImportError:
 if numpy is None and torch is None:
     raise ImportError("Must have either Numpy or PyTorch but both not found")
 
-@lru_cache(maxsize=40)
 def resize(input, scale_factors=None, out_shape=None,
            interp_method=interp_methods.cubic, support_sz=None,
            antialiasing=True, by_convs=False, scale_tolerance=None,
